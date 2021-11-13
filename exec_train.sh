@@ -1,0 +1,1 @@
+PYTHONPATH="/root/MountPoint/WGAN-ImageRecon" python3 "/root/MountPoint/WGAN-ImageRecon/train_img_gen.py"
