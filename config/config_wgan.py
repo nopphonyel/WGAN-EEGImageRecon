@@ -1,6 +1,6 @@
 import os
 import torch
-from libs.utilities import get_freer_gpu
+from libs.utils import get_freer_gpu
 
 # Load model
 load_at_epoch = 0

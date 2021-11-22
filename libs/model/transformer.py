@@ -4,9 +4,6 @@ from torch import nn
 from torch.nn import functional as F
 from torch.autograd import Variable
 
-device = "cuda"
-hidden_dim = 64
-
 
 class MultiHeadAttention(nn.Module):
     """
@@ -134,28 +131,3 @@ class PositionalEncoding(nn.Module):
     def forward(self, x):
         x = x + Variable(self.pe[:, :x.size(1)], requires_grad=False)
         return self.dropout(x)
-
-
-class CustomModel(nn.Module):
-    def __init__(self, input_dim, num_classes):
-        super(CustomModel, self).__init__()
-        self.pe = PositionalEncoding(input_dim, dropout=0)
-        self.enc1 = EEGTransformerEncoder(input_dim, head_num=8)
-        self.enc2 = EEGTransformerEncoder(input_dim, head_num=16, len_reduction='sum')
-        self.fc = nn.Linear(input_dim, num_classes)
-
-    def forward(self, x):
-        x = self.pe(x)
-        x = self.enc1(x)
-        x = self.enc2(x)
-        return self.fc(x)
-
-
-BS = 1
-CHANNEL = 128
-LEN = 440
-
-a_tensor = torch.randn([BS, LEN, CHANNEL]).to(device)
-model = CustomModel(CHANNEL, 40).to(device)
-out = model(a_tensor)
-print(out.shape)

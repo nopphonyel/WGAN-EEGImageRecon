@@ -91,13 +91,18 @@ class AlexNetExtractor(nn.Module):
     This class expected image as input with size (64x64x3)
     """
 
-    def __init__(self, output_class_num, feature_size=200, pretrain=False):
+    def __init__(self, output_class_num, in_channel=3, feature_size=200, pretrain=False):
+        super(AlexNetExtractor, self).__init__()
         self.feature_size = feature_size
         self.num_classes = output_class_num
-        super(AlexNetExtractor, self).__init__()
+        if not pretrain:
+            self.in_channel = in_channel
+        else:
+            print("<I> Pre-trained has been set, using in_channel=3")
+            self.in_channel = 3
         self.features = nn.Sequential(
             # Alex1
-            nn.Conv2d(3, 64, kernel_size=11, stride=4, padding=2),
+            nn.Conv2d(self.in_channel, 64, kernel_size=11, stride=4, padding=2),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=3, stride=2),
             # Alex2

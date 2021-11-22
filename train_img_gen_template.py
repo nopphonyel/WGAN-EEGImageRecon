@@ -5,10 +5,10 @@ import torch.optim as optim
 
 from config.config_wgan import *
 from torch.utils.data import DataLoader
-from libs.model.classic import Generator, Discriminator2, AlexNetExtractor
+from libs.model.wgans import Generator, Discriminator2, AlexNetExtractor
 from dataset.EEGImageNet_Spam_et_al import UnpairedStimuliDataset
 from libs.model.model_utils import weights_init, gradient_penalty
-from libs.utilities import save_img, acc_calc, mkdir, save_model
+from libs.utils import save_img, acc_calc, mkdir, save_model
 
 # Define some path variable
 __dirname__ = os.path.dirname(__file__)

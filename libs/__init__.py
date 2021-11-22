@@ -1,2 +1,2 @@
 import libs.eeg_features
-import libs.utilities as utils
+import libs.utils as utils

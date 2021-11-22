@@ -1,9 +1,11 @@
+import csv, os
 import pathlib
 import numpy as np
 import torch
 
 from torchvision.utils import make_grid, save_image
 from itertools import combinations
+from libs.utils.loss_logger import *
 
 
 def get_freer_gpu():
@@ -19,7 +21,7 @@ def get_freer_gpu():
 
 
 def sizeof_fmt(num, suffix='B'):
-    ''' by Fred Cirera,  https://stackoverflow.com/a/1094933/1870254, modified'''
+    """ by Fred Cirera,  https://stackoverflow.com/a/1094933/1870254, modified"""
     for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
         if abs(num) < 1024.0:
             return "%3.1f %s%s" % (num, unit, suffix)
@@ -49,9 +51,6 @@ def squeeze_tensor_to_list(_tmp):
     return xx
 
 
-import csv, os
-
-
 def save_result_csv(_header_name, _row_data, _path):
     filename = _path
     mode = 'a' if os.path.exists(filename) else 'w'
@@ -67,7 +66,6 @@ def save_result_csv(_header_name, _row_data, _path):
         myfile.close()
 
 
-# ====================================================================
 def get_unique_combination(_elements):
     # start_time   = time.time()
     _result = []
@@ -77,10 +75,6 @@ def get_unique_combination(_elements):
             # print(f'_{_ele}')
             _result.append(list(_ele))
     _result.append(_elements)
-
-    # if _is_debug:
-    #     print(f'time_trace of {inspect.stack()[0][3]} = {time.time()-start_time}')
-
     return _result
 
 
@@ -99,8 +93,8 @@ def acc_calc(pred_l, real_l):
     """
     input expected in one hot encoded
     """
-    p_l = torch.argmax(pred_l, axis=1)
-    r_l = torch.argmax(real_l, axis=1)
+    p_l = torch.argmax(pred_l, dim=1)
+    r_l = torch.argmax(real_l, dim=1)
     return (torch.sum(p_l == r_l).item() / float(p_l.shape[0])) * 100.0
 
 
