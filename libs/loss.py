@@ -15,6 +15,6 @@ def j1_loss(l1, l2, f1, f2):
     """
     s = torch.matmul(l2, l1.transpose(1, 0))
     delta = 0.5 * torch.matmul(torch.tanh(f1), torch.tanh(f2.transpose(1, 0)))
-    losses = torch.mul(s, delta) - torch.log(torch.exp(delta))
+    losses = torch.mul(s, delta) - delta  # torch.log(torch.exp(delta)) why don't we just delta?
     loss = torch.mean(losses)
     return loss

@@ -15,11 +15,11 @@
 #SBATCH --error=submited_log/%x-%j.err
 ### set module variable
 export MODULEPATH=/archive/gpu/apps/gpumodules/modules/all
-export PYTHONPATH="/archive/gpu/home/users/jakrapop.a/jupyter_work/WGAN-EEGImageRecon"
+export PYTHONPATH="/archive/gpu/home/users/jakrapop.a/jupyter_work/WGAN-ImageRecon"
 source /etc/profile.d/00-modulepath.sh
 ### load module
 module purge
 module load Anaconda3/2020.02
 eval "$(conda shell.bash hook)"
 source activate jakrapop_env39
-srun python3 train_img_gen.py
+srun python3 stuff_of_test/merge_fe_f1_score.py

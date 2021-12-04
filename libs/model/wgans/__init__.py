@@ -4,9 +4,10 @@ from torch import nn
 
 # Generator Code
 class Generator(nn.Module):
-    def __init__(self, ngpu, num_classes):
+    def __init__(self, ngpu, num_classes, img_channel=3):
         super(Generator, self).__init__()
         self.ngpu = ngpu
+        self.img_channel = img_channel
         self.net = nn.Sequential(
             # Input: batch x z_dim x 1 x 1 (see definition of noise in below code)
             self._block(z_dim + embed_size + feature_size, gen_dim * 16, 4, 1, 0),  # batch x 1024 x 4 x 4
@@ -14,7 +15,7 @@ class Generator(nn.Module):
             self._block(gen_dim * 8, gen_dim * 4, 4, 2, 1),  # batch x 256 x 16 x 16
             self._block(gen_dim * 4, gen_dim * 2, 4, 2, 1),  # batch x 128 x 32 x 32
             nn.ConvTranspose2d(
-                gen_dim * 2, num_channel_img, kernel_size=4, stride=2, padding=1,
+                gen_dim * 2, self.img_channel, kernel_size=4, stride=2, padding=1,
                 # did not use block because the last layer won't use batch norm or relu
             ),  # batch x 3 x 64 x 64
             nn.Tanh(),
@@ -41,10 +42,11 @@ class Generator(nn.Module):
         return self.net(x)
 
 
-class Discriminator2(nn.Module):
-    def __init__(self, ngpu, num_classes):
-        super(Discriminator2, self).__init__()
+class Discriminator(nn.Module):
+    def __init__(self, ngpu, num_classes, img_channel=3):
+        super(Discriminator, self).__init__()
         self.ngpu = ngpu
+        self.img_channel = img_channel
         self.latent_joining = nn.Sequential(
             nn.Linear(feature_size, image_size * image_size)
         )
@@ -53,7 +55,7 @@ class Discriminator2(nn.Module):
             # Input: batch x num_channel x 64 x 64
             # <-----changed num_channel + 1 since we add the labels
             nn.Conv2d(
-                num_channel_img + 2, dis_dim, kernel_size=4, stride=2, padding=1,
+                self.img_channel + 2, dis_dim, kernel_size=4, stride=2, padding=1,
             ),  # batch x 64 x 32 x 32
             nn.LeakyReLU(0.2, inplace=True),
             self._block(dis_dim, dis_dim * 2, 4, 2, 1),  # batch x 128 x 16 x 16

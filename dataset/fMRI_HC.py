@@ -48,6 +48,13 @@ class fMRI_HC_Dataset(Dataset):
             f_name += "_{}x{}_test.dat".format(fMRI_HC_Dataset.__IMG_SIZE, fMRI_HC_Dataset.__IMG_SIZE)
         return f_name
 
+    @staticmethod
+    def get_name():
+        return "fMRI_HC_Dataset"
+
+    def get_num_classes(self):
+        return 6
+
 ## Testing fragment
 # import matplotlib.pyplot as plt
 #

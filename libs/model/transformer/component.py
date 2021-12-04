@@ -1,8 +1,5 @@
-import torch
+from module import *
 import math
-from torch import nn
-from torch.nn import functional as F
-from torch.autograd import Variable
 
 
 class MultiHeadAttention(nn.Module):
@@ -24,7 +21,7 @@ class MultiHeadAttention(nn.Module):
         self.head_num = head_num
 
         if input_dim % head_num != 0:
-            raise "<X> \'input_dim\' must be divisible by the \'head_num\'"
+            raise "<X> \'qkv_dim\' must be divisible by the \'head_num\'"
         self.head_size = input_dim // self.head_num
         self.head_size_t = nn.Parameter(torch.Tensor([self.head_size]), requires_grad=False)
 
@@ -74,43 +71,6 @@ class MultiHeadAttention(nn.Module):
         return self.lin_WO(attn)
 
 
-class EEGTransformerEncoder(nn.Module):
-    """
-        Expected Input Shape: (batch, seq_len, channels)
-    """
-
-    def __init__(self, input_dim, head_num, drophead_p=0.0, dropout_p=0.0, len_reduction=None):
-        """
-
-        :param input_dim: Size or number of input features
-        :param head_num: Number of head in MultiHeadAttention module
-        :param drophead_p : Probability that each head being drop (Bernoulli distribution)
-        :param len_reduction: Eliminate the seq_len dimension by 'sum' or 'mean' operation
-        """
-        super(EEGTransformerEncoder, self).__init__()
-
-        self.len_reduction = len_reduction
-        self.multi_head = MultiHeadAttention(input_dim, head_num, drophead_p=drophead_p, dropout_p=dropout_p)
-        self.ly_norm1 = nn.LayerNorm(input_dim)
-        self.ff = nn.Linear(input_dim, input_dim)
-        self.ly_norm2 = nn.LayerNorm(input_dim)
-
-    def forward(self, x_orig):
-        x = self.multi_head(x_orig)
-        x_orig = self.ly_norm1(x_orig + x)
-        x = self.ff(x_orig)
-        x = self.ly_norm2(x_orig + x)
-
-        if self.len_reduction == "mean":
-            return torch.mean(x, dim=1)
-        elif self.len_reduction == "sum":
-            return torch.mean(x, dim=1)
-        elif self.len_reduction is None:
-            return x
-        else:
-            raise "<X> Unknown len_reduction mode... Consider using \'mean\' or \'sum\'"
-
-
 class PositionalEncoding(nn.Module):
     """Implement the PE function."""
 
@@ -121,13 +81,12 @@ class PositionalEncoding(nn.Module):
         # Compute the positional encodings once in log space.
         pe = torch.zeros(max_len, in_channel)
         position = torch.arange(0, max_len).unsqueeze(1)
-        div_term = torch.exp(torch.arange(0, in_channel, 2) *
-                             -(math.log(10000.0) / in_channel))
-        pe[:, 0::2] = torch.sin(position * div_term)
-        pe[:, 1::2] = torch.cos(position * div_term)
+        div_term = torch.exp(torch.arange(0, in_channel, 2) * -(math.log(10000.0) / in_channel))
+        pe[:, 0::2] = torch.sin(position * div_term)[:, 0:pe[:, 0::2].shape[1]]
+        pe[:, 1::2] = torch.cos(position * div_term)[:, 0:pe[:, 1::2].shape[1]]
         pe = pe.unsqueeze(0)
         self.register_buffer('pe', pe)
 
     def forward(self, x):
-        x = x + Variable(self.pe[:, :x.size(1)], requires_grad=False)
+        x = x + torch.tensor(self.pe[:, :x.size(1)], requires_grad=False)
         return self.dropout(x)

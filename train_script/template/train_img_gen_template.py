@@ -5,9 +5,9 @@ import torch.optim as optim
 
 from config.config_wgan import *
 from torch.utils.data import DataLoader
-from libs.model.wgans import Generator, Discriminator2, AlexNetExtractor
+from libs.model.wgans import Generator, Discriminator, AlexNetExtractor
 from dataset.EEGImageNet_Spam_et_al import UnpairedStimuliDataset
-from libs.model.model_utils import weights_init, gradient_penalty
+from libs.model.utils import weights_init, gradient_penalty
 from libs.utils import save_img, acc_calc, mkdir, save_model
 
 # Define some path variable
@@ -40,7 +40,7 @@ print("<I> Training len ", tr_len, ", Testing len ", ts_len)
 add_proxy()
 netIE = AlexNetExtractor(num_classes, feature_size, pretrain=True).to(device)
 remove_proxy()
-netD = Discriminator2(ngpu, num_classes).to(device)
+netD = Discriminator(ngpu, num_classes).to(device)
 netG = Generator(ngpu, num_classes).to(device)
 if (device.type == 'cuda') and (ngpu > 1):
     netD = nn.DataParallel(netD, list(range(ngpu)))

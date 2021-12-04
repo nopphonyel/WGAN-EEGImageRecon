@@ -5,7 +5,7 @@ import torch
 
 from torchvision.utils import make_grid, save_image
 from itertools import combinations
-from libs.utils.loss_logger import *
+from libs.utils.logger import *
 
 
 def get_freer_gpu():

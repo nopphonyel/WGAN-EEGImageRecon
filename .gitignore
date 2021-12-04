@@ -14,3 +14,5 @@ libs_extras/libs/EEGModels/__pycache__/
 libs_extras/libs/EEGModels/.ipynb_checkpoints/
 
 libs_extras/libs/EEGModels/utils/.ipynb_checkpoints/
+
+__pycache__/

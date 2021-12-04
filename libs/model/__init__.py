@@ -1,7 +1,8 @@
-import libs.model.wgans as classic
-import libs.model.model_utils as utils
+import libs.model.wgans as wgans
+import libs.model.utils as model_utils
+from libs.model.fully_connected import *
+from libs.model.experimental import *
 
-import torch.nn as nn
 from math import ceil
 
 
