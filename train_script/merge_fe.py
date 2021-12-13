@@ -6,7 +6,7 @@ from dataset.fMRI_HC import fMRI_HC_Dataset
 
 from libs.model import SimpleFCExtractor
 from libs.model import *
-import libs.model.wgans.experimental as wgans_experimental
+import libs.model.wgans.sa_model as wgans_sa
 from libs.model.wgans import AlexNetExtractor
 from libs.utils.logger import LoggerGroup, Reporter
 from libs.utils import *
@@ -82,8 +82,8 @@ criterion = nn.CrossEntropyLoss()
 # netD = wgans.Discriminator(ngpu=1, num_classes=ds.get_num_classes(), img_channel=1).to(dev)
 # netG = wgans.Generator(ngpu=1, num_classes=ds.get_num_classes(), img_channel=1).to(dev)
 num_class = ds.get_num_classes()
-netD = wgans_experimental.SADiscriminator(ngpu=1, num_classes=num_class, img_channel=1, latent_size=200).to(dev)
-netG = wgans_experimental.SAGenerator(ngpu=1, num_classes=num_class, img_channel=1, latent_size=200).to(dev)
+netD = wgans_sa.SADiscriminator(ngpu=1, num_classes=num_class, img_channel=1, latent_size=200).to(dev)
+netG = wgans_sa.SAGenerator(ngpu=1, num_classes=num_class, img_channel=1, latent_size=200).to(dev)
 
 if (dev == 'cuda') and (ngpu > 1):
     netD = nn.DataParallel(netD, list(range(ngpu)))

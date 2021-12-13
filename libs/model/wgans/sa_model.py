@@ -1,19 +1,26 @@
-from config.config_wgan import *
-from torch import nn
+from module import *
+from libs.model.wgans.component import SelfAttn
+
+z_dim = 100
+
+image_size = 64
+gen_dim = image_size
+dis_dim = image_size
 
 
-# Generator Code
-class Generator(nn.Module):
-    def __init__(self, ngpu, num_classes, img_channel=3):
-        super(Generator, self).__init__()
+class SAGenerator(nn.Module):
+    def __init__(self, ngpu, latent_size, num_classes, embed_size=100, img_channel=3):
+        super(SAGenerator, self).__init__()
         self.ngpu = ngpu
         self.img_channel = img_channel
         self.net = nn.Sequential(
-            # Input: batch x (z_dim + embed_size + feature_size) x 1 x 1 (see definition of noise in below code)
-            self._block(z_dim + embed_size + feature_size, gen_dim * 16, 4, 1, 0),  # batch x 1024 x 4 x 4
+            # Input: batch x z_dim x 1 x 1 (see definition of noise in below code)
+            self._block(z_dim + embed_size + latent_size, gen_dim * 16, 4, 1, 0),  # batch x 1024 x 4 x 4
             self._block(gen_dim * 16, gen_dim * 8, 4, 2, 1),  # batch x 512 x 8 x 8
             self._block(gen_dim * 8, gen_dim * 4, 4, 2, 1),  # batch x 256 x 16 x 16
+            SelfAttn(gen_dim * 4, 'relu'),
             self._block(gen_dim * 4, gen_dim * 2, 4, 2, 1),  # batch x 128 x 32 x 32
+            SelfAttn(gen_dim * 2, 'relu'),
             nn.ConvTranspose2d(
                 gen_dim * 2, self.img_channel, kernel_size=4, stride=2, padding=1,
                 # did not use block because the last layer won't use batch norm or relu
@@ -42,13 +49,13 @@ class Generator(nn.Module):
         return self.net(x)
 
 
-class Discriminator(nn.Module):
-    def __init__(self, ngpu, num_classes, img_channel=3):
-        super(Discriminator, self).__init__()
+class SADiscriminator(nn.Module):
+    def __init__(self, ngpu, latent_size, num_classes, img_channel=3):
+        super(SADiscriminator, self).__init__()
         self.ngpu = ngpu
         self.img_channel = img_channel
         self.latent_joining = nn.Sequential(
-            nn.Linear(feature_size, image_size * image_size)
+            nn.Linear(latent_size, image_size * image_size)
         )
         self.net = nn.Sequential(
             # no batch norm in the first layer
@@ -60,7 +67,9 @@ class Discriminator(nn.Module):
             nn.LeakyReLU(0.2, inplace=True),
             self._block(dis_dim, dis_dim * 2, 4, 2, 1),  # batch x 128 x 16 x 16
             self._block(dis_dim * 2, dis_dim * 4, 4, 2, 1),  # batch x 256 x 8 x 8
+            SelfAttn(dis_dim * 4, 'relu'),
             self._block(dis_dim * 4, dis_dim * 8, 4, 2, 1),  # batch x 512 x 4  x 4
+            SelfAttn(dis_dim * 8, 'relu'),
             nn.Conv2d(dis_dim * 8, 1, kernel_size=4, stride=2, padding=0),  # batch x 1 x 1 x 1 for classification
             #             nn.Sigmoid(), #<------removed!
         )
@@ -86,80 +95,3 @@ class Discriminator(nn.Module):
         # feature_em = self.embed_feature(feature).view(feature.shape[0], 1, image_size, image_size)
         x = torch.cat([x, feature_plate, embedding], dim=1)  # batch x (C + 1) x W x H
         return self.net(x)
-
-
-class AlexNetExtractor(nn.Module):
-    """
-    This class expected image as input with size (64x64x3)
-    """
-
-    def __init__(self, output_class_num, in_channel=3, feature_size=200, pretrain=False):
-        super(AlexNetExtractor, self).__init__()
-        self.feature_size = feature_size
-        self.num_classes = output_class_num
-        if not pretrain:
-            self.in_channel = in_channel
-        else:
-            print("<I> Pre-trained has been set, using in_channel=3")
-            self.in_channel = 3
-        self.features = nn.Sequential(
-            # Alex1
-            nn.Conv2d(self.in_channel, 64, kernel_size=11, stride=4, padding=2),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=3, stride=2),
-            # Alex2
-            nn.Conv2d(64, 192, kernel_size=5, padding=2),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=3, stride=2),
-            # Alex3
-            nn.Conv2d(192, 384, kernel_size=3, padding=1),
-            nn.ReLU(),
-            # Alex4
-            nn.Conv2d(384, 256, kernel_size=3, padding=1),
-            nn.ReLU(),
-            # Alex5
-            nn.Conv2d(256, 256, kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=3, stride=2),
-        )
-        self.avgpool = nn.AdaptiveAvgPool2d((6, 6))
-        # return the same number of features but change width and height of img
-        if (pretrain):
-            import torchvision
-            ori_alex = torchvision.models.alexnet(pretrained=True)
-            ori_weight = ori_alex.state_dict()
-            ori_weight.pop('classifier.1.weight')
-            ori_weight.pop('classifier.1.bias')
-            ori_weight.pop('classifier.4.weight')
-            ori_weight.pop('classifier.4.bias')
-            ori_weight.pop('classifier.6.weight')
-            ori_weight.pop('classifier.6.bias')
-            self.load_state_dict(ori_weight)
-            del (ori_alex)
-            del (ori_weight)
-
-        self._add_classifier(self.num_classes, self.feature_size)
-
-    def _add_classifier(self, num_classes, feature_size):
-        self.fc06 = nn.Sequential(
-            nn.Dropout(),
-            nn.Linear(256 * 6 * 6, 4096),
-            nn.ReLU()
-        )
-        self.fc07 = nn.Sequential(
-            nn.Dropout(),
-            nn.Linear(4096, feature_size),
-            nn.ReLU()
-        )
-        self.fc08 = nn.Sequential(
-            nn.Linear(feature_size, num_classes),
-        )
-
-    def forward(self, x):
-        x = self.features(x)
-        x = self.avgpool(x)
-        x = torch.flatten(x, start_dim=1)
-        x = self.fc06(x)
-        semantic_features = self.fc07(x)
-        p_label = self.fc08(semantic_features)
-        return semantic_features, p_label

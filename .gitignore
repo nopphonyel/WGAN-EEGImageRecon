@@ -16,3 +16,5 @@ libs_extras/libs/EEGModels/.ipynb_checkpoints/
 libs_extras/libs/EEGModels/utils/.ipynb_checkpoints/
 
 __pycache__/
+
+train_script/gpu_free
