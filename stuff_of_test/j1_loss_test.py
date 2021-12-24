@@ -5,7 +5,7 @@ from dataset.fMRI_HC import fMRI_HC_Dataset
 
 from libs.model import SimpleFCExtractor
 from libs.model import *
-from libs.model.wgans import AlexNetExtractor
+from libs.model.fe import AlexNetExtractor
 from libs.utils.logger import LoggerGroup, Reporter
 from libs.metrices import micro_macro_f1
 from libs.loss import j1_loss

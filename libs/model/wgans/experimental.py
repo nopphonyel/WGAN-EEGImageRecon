@@ -1,10 +1,10 @@
 from config.config_wgan import *
-from module import *
+from preimport_module import *
 
 
 # Generator Code
 class GeneratorNoLabel(nn.Module):
-    def __init__(self, ngpu, num_classes, latent_size,  img_channel=3):
+    def __init__(self, ngpu, latent_size,  img_channel=3):
         super(GeneratorNoLabel, self).__init__()
         self.ngpu = ngpu
         self.img_channel = img_channel
@@ -42,7 +42,7 @@ class GeneratorNoLabel(nn.Module):
 
 
 class DiscriminatorNoLabel(nn.Module):
-    def __init__(self, ngpu, num_classes, latent_size, img_channel=3):
+    def __init__(self, ngpu, latent_size, img_channel=3):
         super(DiscriminatorNoLabel, self).__init__()
         self.ngpu = ngpu
         self.img_channel = img_channel
@@ -63,7 +63,6 @@ class DiscriminatorNoLabel(nn.Module):
             nn.Conv2d(dis_dim * 8, 1, kernel_size=4, stride=2, padding=0),  # batch x 1 x 1 x 1 for classification
             #             nn.Sigmoid(), #<------removed!
         )
-        self.embed = nn.Embedding(num_classes, image_size * image_size)
 
     def _block(self, in_channels, out_channels, kernel_size, stride, padding):
         return nn.Sequential(

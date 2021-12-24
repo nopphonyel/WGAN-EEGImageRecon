@@ -1,4 +1,4 @@
-from module import *
+from preimport_module import *
 
 
 # custom weights initialization called on netG and netD

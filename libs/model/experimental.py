@@ -1,4 +1,4 @@
-from module import *
+from preimport_module import *
 from libs.model.transformer import *
 
 

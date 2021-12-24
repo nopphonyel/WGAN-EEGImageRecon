@@ -1,4 +1,4 @@
-from module import *
+from preimport_module import *
 from libs.model.wgans.component import SelfAttn
 
 z_dim = 100

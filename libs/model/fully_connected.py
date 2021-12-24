@@ -1,4 +1,4 @@
-from module import *
+from preimport_module import *
 
 
 class StupidFC01(nn.Module):
